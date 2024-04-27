@@ -6,7 +6,7 @@ import os
 
 app = Flask(__name__, static_folder="dist/spa", template_folder="dist/spa", static_url_path="/dist/spa")
 # This is necessary because QUploader uses an AJAX request
-# to send the file
+# to send the file.jpg
 cors = CORS()
 cors.init_app(app, resource={r"/api/*": {"origins": "*"}})
 
@@ -44,4 +44,4 @@ def upload():
 if __name__ == '__main__':
     if not os.path.exists('./uploads'):
         os.mkdir('./uploads')
-    app.run(debug=True)
+    app.run(debug=True, port=9000)

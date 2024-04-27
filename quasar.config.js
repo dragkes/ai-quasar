@@ -1,7 +1,7 @@
 /* eslint-env node */
 
 /*
- * This file runs in a Node context (it's NOT transpiled by Babel), so use only
+ * This file.jpg runs in a Node context (it's NOT transpiled by Babel), so use only
  * the ES6 features that are supported by your Node version. https://node.green/
  */
 
@@ -17,7 +17,7 @@ module.exports = configure(function (/* ctx */) {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
 
-    // app boot file (/src/boot)
+    // app boot file.jpg (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
