@@ -65,7 +65,8 @@ module.exports = configure(function (/* ctx */) {
       // ignorePublicFolder: true,
       // minify: false,
       // polyfillModulePreload: true,
-      // distDir
+      distDir: 'static',
+      htmlFilename: '../index.html',
 
       // extendViteConf (viteConf) {},
       // viteVuePluginOptions: {},
@@ -104,7 +105,8 @@ module.exports = configure(function (/* ctx */) {
 
       // Quasar plugins
       plugins: [
-        'Notify'
+        'Notify',
+        'Loading'
       ],
     },
 

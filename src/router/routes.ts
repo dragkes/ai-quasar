@@ -5,8 +5,10 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: () => import('pages/IndexPage.vue'),
   },
-  // Always leave this as last one,
-  // but you can also remove it
+  {
+    path: '/result',
+    component: () => import('pages/resultPage.vue'),
+  },
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
