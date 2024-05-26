@@ -38,7 +38,7 @@ defineOptions({
             <p>After</p>
           </div>
         </div>
-        <q-btn @click="() => {router.push('/')}">Go back</q-btn>
+        <q-btn color="red" @click="() => {router.push('/')}">Go back</q-btn>
       </div>
     </q-page>
   </PageWrapper>
