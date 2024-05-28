@@ -4,7 +4,7 @@
     <q-page class="main-page">
       <div class="upload">
         <h3 style="margin-bottom: 0">AI image enhancer</h3>
-        <h5 style="margin-top: 1em">Enhance images with AI lorem ipsum</h5>
+        <h5 style="margin-top: 1em">Apply various effects to an image using AI</h5>
         <q-file
           v-model="uploadedImage"
           standout
@@ -15,17 +15,54 @@
           label-color="white"
         >
         </q-file>
-        <div v-if="src" style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 80px ">
-          <q-img  class="image-to-upload" :src="src"></q-img>
+
+        <span style="opacity: 0.6">Images must be exactly 256 by 256 pixels</span>
+
+        <div
+          v-if="uploadedImageObjectUrl"
+          style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 80px ">
+          <q-img class="image-to-upload" :src="uploadedImageObjectUrl"></q-img>
           <div style="display: flex; flex-direction: column; gap: 20px">
             <h5 style="margin: 0">Enhancing params</h5>
-            <q-checkbox v-model="checkbox1">Checkbox 1</q-checkbox>
-            <q-checkbox v-model="checkbox2">Checkbox 2</q-checkbox>
-            <q-checkbox v-model="checkbox3">Checkbox 3</q-checkbox>
+            <div>
+              <q-checkbox v-model="colorize">
+                Colorize
+                <q-tooltip anchor="center right" self="center left">
+                  Colorize monochromatic image
+                </q-tooltip>
+              </q-checkbox>
+            </div>
+
+            <div>
+              <q-checkbox v-model="sharpen">
+                Sharpen
+                <q-tooltip anchor="center right" self="center left">
+                  Sharpen image
+                </q-tooltip>
+              </q-checkbox>
+            </div>
+
+            <div>
+              <q-checkbox v-model="removeGlare">
+                Remove glare
+                <q-tooltip anchor="center right" self="center left">
+                  Remove glare defects from your image
+                </q-tooltip>
+              </q-checkbox>
+            </div>
           </div>
         </div>
 
-        <q-btn v-if="src" color="red" style="margin-top: 16px" @click="submit">Submit</q-btn>
+        <q-btn
+          v-if="uploadedImageObjectUrl"
+          :disabled="!anyCheckboxSelected()"
+          color="red"
+          style="margin-top: 16px"
+          @click="submit"
+        >
+          Submit
+        </q-btn>
+        <span v-if="uploadedImageObjectUrl && !anyCheckboxSelected()" style="color:red;">Please choose at least one enhancement parameter</span>
       </div>
     </q-page>
   </PageWrapper>
@@ -43,45 +80,71 @@ import { useStore } from 'vuex';
 const allowedTypes = ['image/jpg', 'image/jpeg', 'image/png'];
 
 const uploadedImage = ref<File | null>(null);
-const src = ref<string | undefined>(undefined);
+const uploadedImageObjectUrl = ref<string | undefined>(undefined);
 
-const checkbox1 = ref(false);
-const checkbox2 = ref(false);
-const checkbox3 = ref(false);
+const colorize = ref(false);
+const sharpen = ref(false);
+const removeGlare = ref(false);
 
 const $q = useQuasar();
 const router = useRouter();
 const store = useStore();
 
+const anyCheckboxSelected = (): boolean => {
+  return colorize.value || sharpen.value || removeGlare.value;
+};
 
 watch(uploadedImage, (newValue) => {
   if (newValue) {
     if (allowedTypes.find((type) => type === newValue?.type) === undefined) {
       $q.notify({
         type: 'negative',
-        message: 'Uploaded file.jpg type is not supported'
+        message: 'Uploaded file type is not supported'
       });
-      console.error('Uploaded file.jpg type is not supported');
-      return;
+      uploadedImage.value = null;
+      throw new Error('Uploaded file type is not supported');
+
     }
-    src.value = URL.createObjectURL(newValue);
-    store.commit('setOldImage', uploadedImage.value);
+
+    const objectUrl = URL.createObjectURL(newValue);
+
+    let img = new Image();
+    img.src = objectUrl;
+
+    img.onload = () => {
+      if (img.height > 256 || img.width > 256) {
+        $q.notify({
+          type: 'negative',
+          message: 'Image must be exactly 256 by 256 pixels',
+          caption: `Provided image is ${img.height} by ${img.width}`
+        });
+        uploadedImage.value = null;
+        throw new Error('Image must be exactly 256 by 256 pixels');
+      }
+      uploadedImageObjectUrl.value = objectUrl;
+
+      store.commit('setOldImage', newValue);
+    };
   }
 });
 
 const submit = () => {
   let data = new FormData();
   if (!uploadedImage.value) {
-    $q.notify({
-      type: 'negative',
-      message: 'Internal error'
-    });
     return;
   }
+
+  if (!anyCheckboxSelected()) {
+    $q.notify({
+      type: 'negative',
+      message: 'At least one parameter must be selected'
+    });
+    throw new Error('At least one parameter must be selected');
+  }
   data.append('file', uploadedImage.value);
-  data.append('checkbox1', checkbox1.value.toString());
-  data.append('checkbox2', checkbox2.value.toString());
-  data.append('checkbox3', checkbox3.value.toString());
+  data.append('colorize', colorize.value.toString());
+  data.append('sharpen', sharpen.value.toString());
+  data.append('removeGlare', removeGlare.value.toString());
 
 
   $q.loading.show();
