@@ -1,23 +1,22 @@
 import io
-import json
 import os
 
-from flask import Flask, render_template, request, send_file, make_response
+from flask import Flask, render_template, request, send_file
 from flask_cors import CORS
 import cv2 as cv
 import numpy as np
-import sys
 import torch
 from PIL import Image
-from skimage.transform import resize
-from train import ConvNet
-from utils import read_image, cvt2Lab, upsample, cvt2rgb
+
+from py.predict import sharpen
+from py.train import ConvNet
+from py.utils import cvt2Lab, upsample, cvt2rgb
 
 app = Flask(__name__, static_folder="static", template_folder="static", static_url_path="/")
 cors = CORS()
 cors.init_app(app, resource={r"/api/*": {"origins": "*"}})
 
-MODEL_PATH = "model/image_colorization_model.pt"
+MODEL_PATH = "model/image_colorization_model-good.pt"
 
 
 @app.route("/", defaults={"path": ""})
@@ -32,22 +31,21 @@ def upload():
         photo = request.files.get(fname)
         in_memory_file = io.BytesIO()
         photo.save(in_memory_file)
-        data = np.fromstring(in_memory_file.getvalue(), dtype=np.uint8)
+        data = np.frombuffer(in_memory_file.getvalue(), dtype=np.uint8)
         color_image_flag = 1
         img = cv.imdecode(data, color_image_flag)
         result = img
         colorized = request.form.get('colorize')
-        sharpen = request.form.get('sharpen')
+        sharpened = request.form.get('sharpen')
         remove_glare = request.form.get('removeGlare')
-        if colorized:
+        if colorized.lower() == 'true':
             result = np.array(colorize(result))
 
-        #   TODO
-        # if sharpen:
-        #     result = np.array(sharpen(result))
+        if sharpened.lower() == 'true':
+            result = np.array(sharpen(result))
 
         #   TODO
-        # if remove_glare:
+        # if remove_glare.lower() == 'true':
         #     result = np.array(remove_glare(result))
 
         image_bytes = cv.imencode('.jpg', result)[1].tobytes()

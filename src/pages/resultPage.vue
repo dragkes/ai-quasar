@@ -18,6 +18,28 @@ onMounted(() => {
   }
 });
 
+const downloadClick = () => {
+  if(store.state.newImage) {
+    const blob = new Blob([store.state.newImage], { type: 'image/jpeg' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+
+    a.download = getFileName(store.state.oldImage?.name) + '_result.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+}
+
+const getFileName = (fileName: string | undefined) => {
+  if (fileName) {
+    return fileName.replace(/\.[^/.]+$/, '');
+  }
+  return ''
+}
+
 defineOptions({
   name: 'ResultPage'
 });
@@ -38,7 +60,10 @@ defineOptions({
             <p>After</p>
           </div>
         </div>
-        <q-btn color="red" @click="() => {router.push('/')}">Go back</q-btn>
+        <div style="display: flex; flex-direction: row; align-items: center; gap: 20px">
+          <q-btn color="red" @click="() => {router.push('/')}">Go back</q-btn>
+          <q-btn color="red" @click="downloadClick">Download the result</q-btn>
+        </div>
       </div>
     </q-page>
   </PageWrapper>
