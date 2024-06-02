@@ -11,6 +11,7 @@ from PIL import Image
 from py.predict import sharpen
 from py.train import ConvNet
 from py.utils import cvt2Lab, upsample, cvt2rgb
+from py.apply import remove_glare
 
 app = Flask(__name__, static_folder="static", template_folder="static", static_url_path="/")
 cors = CORS()
@@ -37,16 +38,15 @@ def upload():
         result = img
         colorized = request.form.get('colorize')
         sharpened = request.form.get('sharpen')
-        remove_glare = request.form.get('removeGlare')
+        removed_glare = request.form.get('removeGlare')
         if colorized.lower() == 'true':
             result = np.array(colorize(result))
 
         if sharpened.lower() == 'true':
             result = np.array(sharpen(result))
 
-        #   TODO
-        # if remove_glare.lower() == 'true':
-        #     result = np.array(remove_glare(result))
+        if removed_glare.lower() == 'true':
+            result = np.array(remove_glare(result))
 
         image_bytes = cv.imencode('.jpg', result)[1].tobytes()
         return send_file(io.BytesIO(image_bytes), mimetype="image/jpg")
@@ -80,7 +80,6 @@ def process_image(img, img_light):
 
 def colorize(image):
     model = get_model()
-
     img_light, img_input, real_size = preprocess_image(image)
 
     img = model(img_input).cpu().data.numpy()
@@ -91,6 +90,4 @@ def colorize(image):
 
 
 if __name__ == '__main__':
-    if not os.path.exists('./uploads'):
-        os.mkdir('./uploads')
     app.run(debug=True, port=9000)

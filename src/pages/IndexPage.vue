@@ -199,7 +199,6 @@ defineOptions({
 }
 
 .upload {
-  //margin-top: 5vw;
   display: flex;
   flex-direction: column;
   align-items: center;
